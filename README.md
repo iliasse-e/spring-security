@@ -4,26 +4,26 @@
 
 ## Resumer des systèmes d'authentification
 
-![Capture d'écran 2025-09-17 004715.png](../../../../Pictures/Screenshots/Capture%20d%27%C3%A9cran%202025-09-17%20004715.png)
+![Capture d'écran 2025-09-17 004715.png](src/main/resources/static/Capture%20d%27%C3%A9cran%202025-09-17%20004715.png)
 
 ### Tableau 1 : Stateful
-![stateful.png](../../../../Pictures/Screenshots/stateful.png)
+
+![stateful.png](src/main/resources/static/stateful.png)
 
 ### Tableau 2 : Stateless
-![stateless.png](../../../../Pictures/Screenshots/stateless.png)
 
-## Failles de sécurités :
+![stateless.png](src/main/resources/static/stateless.png)
 
-### CSRF
+## Faille de sécurité CSRF
 
-#### Problème :
+### Problème :
 
-![Capture d’écran 2025-09-17 005405.png](../../../../Pictures/Screenshots/Capture%20d%E2%80%99%C3%A9cran%202025-09-17%20005405.png)
+![Capture d'écran 2025-09-17 005359.png](src/main/resources/static/Capture%20d%27%C3%A9cran%202025-09-17%20005359.png)
 
-#### Une solution :
+### Une solution :
 
-![Capture d'écran 2025-09-17 005615.png](../../../../Pictures/Screenshots/Capture%20d%27%C3%A9cran%202025-09-17%20005615.png)
+![Capture d'écran 2025-09-17 005615.png](src/main/resources/static/Capture%20d%27%C3%A9cran%202025-09-17%20005615.png)
 
 ## JWT
 
-![Capture d'écran 2025-09-17 005801.png](../../../../Pictures/Screenshots/Capture%20d%27%C3%A9cran%202025-09-17%20005801.png)
+![Capture d'écran 2025-09-17 005801.png](src/main/resources/static/Capture%20d%27%C3%A9cran%202025-09-17%20005801.png)
