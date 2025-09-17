@@ -1,7 +1,6 @@
 package com.example.spring_security;
 
 import com.example.spring_security.entities.AppRole;
-import com.example.spring_security.entities.AppUser;
 import com.example.spring_security.service.AccountService;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;

@@ -24,22 +24,22 @@
 
 ![Capture d'écran 2025-09-17 005615.png](src/main/resources/static/Capture%20d%27%C3%A9cran%202025-09-17%20005615.png)
 
-## JWT
+## Une autre solution : JWT
 
 ![Capture d'écran 2025-09-17 005801.png](src/main/resources/static/Capture%20d%27%C3%A9cran%202025-09-17%20005801.png)
 
-## Spring Security
+## Utilisation de Spring Security
 
 Spring security génère une page d'authentification (en communiquant le mot de passe en console).
 Ensuite, il cntourne la faille de sécurité CSRF en mettant en place le jeton de sécurité (d'ou la raison pour laquelle la page est bloquée).
 
 Pour avoir la main sur la configuration (dans le cas ou on utilise une stratégie stateless),
-on créé un fichier `SecurityConfiguration` pour personnaliser les paramètres :
+on créé un fichier `SecurityConfiguration` pour personnaliser les paramètres de la méthode `configure()` :
 
 
 `.permitAll()` Pour authoriser toutes URL
 
 `.csrf(...)` Pour désactiver le csrf
 
-`.header(...)` dans lequel se trouve frameOption, qu'il faut désactiver aussi 
+`.header(...)` dans lequel se trouve frameOption, qu'il faut désactiver aussi (dans le cas de l'utilisation de H2 DB)
 
