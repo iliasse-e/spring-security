@@ -48,7 +48,7 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public AppRole save(AppRole role) {
+    public AppRole saveRole(AppRole role) {
         log.info("Saving role : {}", role.getRoleName());
         return appRoleRepository.save(role);
     }

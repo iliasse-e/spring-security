@@ -17,9 +17,9 @@ public class SpringSecurityApplication {
 	@Bean
 	CommandLineRunner start(AccountService accountService){
 		return args->{
-			accountService.save(new AppRole(null, "USER"));
-			accountService.save(new AppRole(null, "ADMIN"));
-			accountService.save(new AppRole(null, "MANAGER"));
+			accountService.saveRole(new AppRole(null, "USER"));
+			accountService.saveRole(new AppRole(null, "ADMIN"));
+			accountService.saveRole(new AppRole(null, "MANAGER"));
 
 			accountService.saveUser("Mohammed", "JeSuisMalade", "JeSuisMalade");
 			accountService.saveUser("Raj", "JeSuisMalade", "JeSuisMalade");

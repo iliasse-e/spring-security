@@ -1,7 +1,9 @@
 package com.example.spring_security.controller;
 
+import com.example.spring_security.entities.AppRole;
 import com.example.spring_security.entities.AppUser;
 import com.example.spring_security.service.AccountService;
+import com.example.spring_security.utils.RoleToUserForm;
 import com.example.spring_security.utils.UserForm;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,5 +29,15 @@ public class UserController {
     @GetMapping("/users")
     public List<AppUser> userList() {
         return accountService.getUserList();
+    }
+
+    @PostMapping("/roles")
+    public AppRole saveRole(@RequestBody AppRole appRole){
+        return accountService.saveRole(appRole);
+    }
+
+    @PostMapping("/roles/addToUser")
+    public void addRoleToUser(@RequestBody RoleToUserForm roleToUserForm) {
+        accountService.addRoleToUser(roleToUserForm.getUsername(), roleToUserForm.getRole());
     }
 }
