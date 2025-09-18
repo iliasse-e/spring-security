@@ -41,5 +41,74 @@ on créé un fichier `SecurityConfiguration` pour personnaliser les paramètres 
 
 `.csrf(...)` Pour désactiver le csrf
 
-`.header(...)` dans lequel se trouve frameOption, qu'il faut désactiver aussi (dans le cas de l'utilisation de H2 DB)
+`.header(...)` Dans lequel se trouve frameOption, qu'il faut désactiver aussi (dans le cas de l'utilisation de H2 DB)
+
+`.formLogin()` Génère un formulaire d'authentification
+
+### l'interface UserDetailsService
+
+L’interface UserDetailsService est le point d’entrée standard que Spring Security utilise pour récupérer les
+informations d’un utilisateur (nom, mot de passe, rôles, etc.) lors de l’authentification.
+
+Spring Security appelle cette méthode pour :
+
+- Trouver l’utilisateur dans ta base de données (ou autre source).
+
+- Retourner un objet UserDetails contenant les infos nécessaires à l’authentification.
+
+```java
+UserDetails loadUserByUsername(String username) throws UsernameNotFoundException;
+```
+
+## Stateless : implémenter JWT
+
+![jwt diagram.png](src/main/resources/static/jwt%20diagram.png)
+
+Conformément au diagram, pour implémenter JWT, on va devoir manipuler 2 méthodes importantes (qu'il va falloir surcharger) :
+
+- ``attemptAuthentication`` Lorsque l'utilisateur tente de s'authentifier
+- ``successfulAuthentication`` Une foi l'utilisateur authentifié
+
+Pour cela, on créé une class qui hérite de `UsernamePasswordAuthenticationFilter` :
+
+```java
+public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
+    @Override
+    public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
+    }
+
+    @Override
+    protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authResult) throws IOException, ServletException {
+    }
+}
+```
+
+Dans `successfulAuthentication` on génère le jeton `jwt` :
+
+```java
+User user = (User) authResult.getPrincipal();
+Algorithm algorithm = Algorithm.HMAC256("mySecret1234");
+String jwtAccessToken = JWT.create()
+        .withSubject(user.getUsername())
+        .withExpiresAt(new Date(System.currentTimeMillis() + 5 * 60 * 1000))
+        .withIssuer(request.getRequestURL().toString())
+        .withClaim("roles", user.getAuthorities().stream().map(ga -> ga.toString()).collect(Collectors.toList()))
+        .sign(algorithm);
+
+response.setHeader("Authorization", jwtAccessToken);
+```
+
+Pour tester :
+
+Methode : POST, URL : `{url}/login`,
+
+avec un body au format `x-www-form-urlencoded`.
+
+En retour, dans le header de la réponse, on a un JWT dans le champ `Authorization`.
+
+### Gestion de la révocation du token
+
+**Problème** : Une fois que l'on génère un token qui expire dans une semaine, rien ne m'empêche d'accéder à l'application durant toute cette période.
+
+**Solution** : Acces Token & Refresh token
 
