@@ -69,7 +69,7 @@ Conformément au diagram, pour implémenter JWT, on va devoir manipuler 2 métho
 - ``attemptAuthentication`` Lorsque l'utilisateur tente de s'authentifier
 - ``successfulAuthentication`` Une foi l'utilisateur authentifié
 
-Pour cela, on créé une class qui hérite de `UsernamePasswordAuthenticationFilter` :
+Pour cela, on créé une class qui hérite de la class `UsernamePasswordAuthenticationFilter` :
 
 ```java
 public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
@@ -108,7 +108,35 @@ En retour, dans le header de la réponse, on a un JWT dans le champ `Authorizati
 
 ### Gestion de la révocation du token
 
-**Problème** : Une fois que l'on génère un token qui expire dans une semaine, rien ne m'empêche d'accéder à l'application durant toute cette période.
+**Problème** : Une fois que l'on génère un token qui expire dans 30 jours, rien n'empêche l'utilisateur d'accéder à l'application durant toute cette période.
 
-**Solution** : Acces Token & Refresh token
+**Solution** : Utilisation de 2 token ``Access Token`` & ``Refresh token`` :
+
+#### 🔐 Access Token : le passeport temporaire
+
+- Durée de vie courte : souvent entre 15 minutes et 1 heure.
+
+- Contient les permissions (scopes) : ce que l’utilisateur est autorisé à faire.
+
+- Utilisé pour accéder aux ressources : chaque requête vers une API inclut cet access token.
+
+- Format JWT : il est autoportant, signé, et peut être vérifié sans requête à la base de données.
+
+**⚠️ S’il est volé, l’attaquant peut accéder aux ressources jusqu’à expiration.**
+
+#### 🔁 Refresh Token : le ticket de renouvellement
+- Durée de vie longue : plusieurs jours, voire semaines.
+
+- Utilisé pour obtenir un nouvel access token sans que l’utilisateur se reconnecte.
+
+- Stocké de manière sécurisée : souvent côté serveur ou dans un cookie httpOnly.
+
+- Peut être révoqué : contrairement à l’access token, il est souvent stocké en base et donc traçable.
+
+**🎯 Il permet de maintenir une session fluide sans compromettre la sécurité.**
+
+
+L’access token est comme une carte d’accès temporaire, 
+tandis que le refresh token est le mécanisme qui permet de prolonger cette carte sans redemander l’identité à chaque fois. 
+Ce duo permet de concilier sécurité stricte et fluidité d’usage.
 
