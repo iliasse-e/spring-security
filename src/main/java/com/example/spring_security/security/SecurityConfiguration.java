@@ -39,7 +39,7 @@ public class SecurityConfiguration implements UserDetailsService {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, AuthenticationConfiguration authenticationConfiguration) throws Exception {
         http
-                .authorizeHttpRequests((authz) -> authz.requestMatchers("/h2-console/**").permitAll()) // laisse h2 tranquille
+                .authorizeHttpRequests((authz) -> authz.requestMatchers("/h2-console/**", "/refreshToken/**").permitAll()) // laisse h2 tranquille
                 .authorizeHttpRequests((authz) -> authz.anyRequest().authenticated()) // Toute requete necessite une authentification
                 .httpBasic(withDefaults())
                 .csrf(httpSecurityCsrfConfigurer -> httpSecurityCsrfConfigurer.disable()) // Dans le cadre d'un auth stateless, sinon ne pas utiliser la func

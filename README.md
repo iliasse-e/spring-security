@@ -217,3 +217,20 @@ public class SpringSecurityApplication { }
 ```
 
 Maintenant chaque controller/service peut être filtré en fonction du ou des roles de l'utilisateur.
+
+
+### Refresh token
+
+En cas d'expiration du token d'accès, on a 2 solution :
+
+- S'autentifier (mauvaise solution).
+- On utilise le refresh token pour en générer un nouveau.
+
+On le fait via le controller :
+
+```java
+@GetMapping("/refreshToken")
+public void refreshToken(HttpServletRequest request, HttpServletResponse response) throws IOException { }
+```
+
+Ceci permet de générer un nouveau access token à chaque fois qu'il a expiré.

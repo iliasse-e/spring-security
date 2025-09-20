@@ -23,6 +23,11 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
+        // on exclu la requete de rafraichissement de token
+        if (request.getServletPath().equals("/refreshToken")) {
+            filterChain.doFilter(request, response);
+        }
+
         // check token
         String authorizationToken = request.getHeader("Authorization");
 
