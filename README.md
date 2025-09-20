@@ -140,3 +140,80 @@ L’access token est comme une carte d’accès temporaire,
 tandis que le refresh token est le mécanisme qui permet de prolonger cette carte sans redemander l’identité à chaque fois. 
 Ce duo permet de concilier sécurité stricte et fluidité d’usage.
 
+### JWT Authorization filter
+
+![jwt filter authorization.png](src/main/resources/static/jwt%20filter%20authorization.png)
+
+Lorsque l'on demande une ressource via REST, l'application doit vérifier l'autorisation, via la manipulation du Bearer token.
+
+Pour mettre en place cette feature, on doit créer une classe qui hérite de `OncePerRequestFilter`, 
+il s'agit d'une méthode qui est invoqué une fois qu'une requete arrive dans le serveur.
+
+
+
+```java
+public class JwtAuthorizationFilter extends OncePerRequestFilter { 
+    @Override
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+        // On récupère le Bearer
+        // On décode le token
+        // On set l'utilisateur
+    }
+}
+```
+
+Sans oublier d'ajouter cette méthode en guise de filtre dans la configuration principale de la classe `SecurityConfiguration` :
+
+```java
+@Bean
+public SecurityFilterChain filterChain(HttpSecurity http, AuthenticationConfiguration authenticationConfiguration) throws Exception {
+   ...
+        .addFilterBefore(new JwtAuthorizationFilter(), UsernamePasswordAuthenticationFilter.class);
+
+}
+```
+
+Et maintenant, je peux accéder aux ressources de l'application, ex :
+
+``GET /users`` (avec le Bearer token dans le champs Authorization du header de la requete).
+
+### Gestion des roles
+
+Dans mon application, je dois être admin pour accéder à certaines requetes et user pour d'autres.
+
+Comment faire ?
+
+#### 1re méthode
+
+```java
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http, AuthenticationConfiguration authenticationConfiguration) throws Exception {
+        http
+                .authorizeHttpRequests((authz) -> authz.requestMatchers(HttpMethod.GET, "/users/**").hasAuthority("USER"))
+                .authorizeHttpRequests((authz) -> authz.requestMatchers(HttpMethod.POST, "/users/**").hasAuthority("ADMIN"))
+```
+
+#### 2e méthode 
+
+En ajoutant des annotation aux méthodes (controller ou service) :
+
+```java
+@PostAuthorize("hasAuthority('ADMIN')")
+@PostMapping("/users")
+public AppUser register(@RequestBody UserForm userForm) { }
+
+//
+
+@PostAuthorize("hasAuthority('USER')")
+@GetMapping("/users")
+public List<AppUser> userList() { }
+```
+
+Sans oublier d'ajouter l'annotation suivante dans la class root :
+
+```java
+@EnableMethodSecurity(prePostEnabled = true, securedEnabled = true)
+public class SpringSecurityApplication { }
+```
+
+Maintenant chaque controller/service peut être filtré en fonction du ou des roles de l'utilisateur.

@@ -2,12 +2,13 @@ package com.example.spring_security.security;
 
 import com.example.spring_security.entities.AppUser;
 import com.example.spring_security.filters.JwtAuthenticationFilter;
+import com.example.spring_security.filters.JwtAuthorizationFilter;
 import com.example.spring_security.service.AccountService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -20,6 +21,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -38,7 +40,7 @@ public class SecurityConfiguration implements UserDetailsService {
     public SecurityFilterChain filterChain(HttpSecurity http, AuthenticationConfiguration authenticationConfiguration) throws Exception {
         http
                 .authorizeHttpRequests((authz) -> authz.requestMatchers("/h2-console/**").permitAll()) // laisse h2 tranquille
-                .authorizeHttpRequests((authz) -> authz.anyRequest().authenticated())
+                .authorizeHttpRequests((authz) -> authz.anyRequest().authenticated()) // Toute requete necessite une authentification
                 .httpBasic(withDefaults())
                 .csrf(httpSecurityCsrfConfigurer -> httpSecurityCsrfConfigurer.disable()) // Dans le cadre d'un auth stateless, sinon ne pas utiliser la func
                 .sessionManagement(httpSecuritySessionManagementConfigurer ->
@@ -47,7 +49,8 @@ public class SecurityConfiguration implements UserDetailsService {
                 .headers(httpSecurityHeadersConfigurer -> httpSecurityHeadersConfigurer
                         .frameOptions(frameOptionsConfig -> frameOptionsConfig.disable())
                 )
-                .addFilter(new JwtAuthenticationFilter(authenticationConfiguration.getAuthenticationManager()));
+                .addFilter(new JwtAuthenticationFilter(authenticationConfiguration.getAuthenticationManager()))
+                .addFilterBefore(new JwtAuthorizationFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
