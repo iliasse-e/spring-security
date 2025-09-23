@@ -234,3 +234,8 @@ public void refreshToken(HttpServletRequest request, HttpServletResponse respons
 ```
 
 Ceci permet de générer un nouveau access token à chaque fois qu'il a expiré.
+
+
+### Problématique :
+
+Cette application fonctionne avec Postman, mais a un problème lorsqu'il s'agit d'un navigateur. Le cookie n'est pas récupéré lorsqu'on appelle `/refreshToken`.

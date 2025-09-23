@@ -23,9 +23,9 @@ public class SpringSecurityApplication {
 			accountService.saveRole(new AppRole(null, "ADMIN"));
 			accountService.saveRole(new AppRole(null, "MANAGER"));
 
-			accountService.saveUser("Mohammed", "JeSuisMalade", "JeSuisMalade");
-			accountService.saveUser("Raj", "JeSuisMalade", "JeSuisMalade");
-			accountService.saveUser("Xu", "JeSuisMalade", "JeSuisMalade");
+			accountService.saveUser("Mohammed", "1234", "1234");
+			accountService.saveUser("Raj", "1234", "1234");
+			accountService.saveUser("Xu", "1234", "1234");
 
 			accountService.addRoleToUser("Raj", "ADMIN");
 			accountService.addRoleToUser("Xu", "MANAGER");

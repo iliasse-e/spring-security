@@ -6,6 +6,7 @@ import com.example.spring_security.utils.JWTUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -49,6 +50,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         User user = (User) authResult.getPrincipal();
         Algorithm algorithm = Algorithm.HMAC256(JWTUtil.SECRET);
 
+        // 1- On Créé le token d'access
         String jwtAccessToken = JWT.create()
                 .withSubject(user.getUsername())
                 .withExpiresAt(new Date(System.currentTimeMillis() + JWTUtil.EXPIRE_ACCESS_TOKEN))
@@ -56,17 +58,29 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
                 .withClaim("roles", user.getAuthorities().stream().map(ga -> ga.toString()).collect(Collectors.toList()))
                 .sign(algorithm);
 
+        // 2- On Créé le refresh token
         String jwtRefreshToken = JWT.create()
                 .withSubject(user.getUsername())
                 .withExpiresAt(new Date(System.currentTimeMillis() + JWTUtil.EXPIRE_REFRESH_TOKEN))
                 .withIssuer(request.getRequestURL().toString())
                 .sign(algorithm);
 
+        // 3- On envoie le refrsh token dans les cookies
+        Cookie refreshCookie = new Cookie("refresh-token", jwtRefreshToken);
+        refreshCookie.setHttpOnly(true);
+        refreshCookie.setSecure(false); // à activer en production (HTTPS)
+        refreshCookie.setPath(JWTUtil.ENDPOINT_REFRESH_TOKEN); // le navigateur l’enverra uniquement pour cette route
+        refreshCookie.setMaxAge((int) (JWTUtil.EXPIRE_REFRESH_TOKEN));
+
+        response.addCookie(refreshCookie);
+
+        log.info("Cookie is settled");
+
+        // 4- On envoie le token d'accès dans le body de la réponse
         Map<String, String> idToken = new HashMap<>();
         idToken.put("access-token", jwtAccessToken);
-        idToken.put("refresh-token", jwtRefreshToken);
 
         response.setContentType("application/json");
-        new ObjectMapper().writeValue(response.getOutputStream(), idToken); // envoie idToken dans le body en format JSON
+        new ObjectMapper().writeValue(response.getOutputStream(), idToken);
     }
 }

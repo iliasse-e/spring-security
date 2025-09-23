@@ -11,8 +11,10 @@ import com.example.spring_security.utils.JWTUtil;
 import com.example.spring_security.utils.RoleToUserForm;
 import com.example.spring_security.utils.UserForm;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,8 +26,10 @@ import java.io.IOException;
 import java.security.Principal;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @RestController
+@Slf4j
 public class UserController {
     @Autowired
     private AccountService accountService;
@@ -60,19 +64,44 @@ public class UserController {
 
     @GetMapping("/refreshToken")
     public void refreshToken(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        String authToken = request.getHeader(JWTUtil.AUTH_HEADER);
+        log.info("Refresh token processing");
 
-        if (authToken != null && authToken.startsWith(JWTUtil.PREFIX)) {
+        // 1. Récupération sécurisée du cookie
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                log.info("Cookie reçu : {} = {}", cookie.getName(), cookie.getValue());
+            }
+        } else {
+            throw new RuntimeException("Refresh token required");
+        }
+
+        String refreshToken = Optional.ofNullable(request.getCookies())
+                .map(Arrays::stream)
+                .orElseGet(Stream::empty)
+                .filter(c -> "refresh-token".equals(c.getName()))
+                .map(Cookie::getValue)
+                .findFirst()
+                .orElse(null);
+
+        log.info("Found refresh token with value : {}", refreshToken);
+
+        if (refreshToken != null) {
             try {
-                String jwtRefreshToken = authToken.substring(JWTUtil.PREFIX.length());
+                // 2. Vérification du token
+                log.info("Refresh token verification processing");
                 Algorithm algorithm = Algorithm.HMAC256(JWTUtil.SECRET); // On utilise la même clé pour crypter et décrypter
                 JWTVerifier jwtVerifier = JWT.require(algorithm).build();
-                DecodedJWT decodedJWT = jwtVerifier.verify(jwtRefreshToken);
+
+                log.info("Refresh token decoding processing");
+                DecodedJWT decodedJWT = jwtVerifier.verify(refreshToken);
+                log.info("decoded");
                 String username = decodedJWT.getSubject();
+                log.info("Refresh token valid for user: {}", username);
 
                 AppUser appUser = accountService.loadUserByUsername(username);
 
-                // Créé un access token
+                // 3. Génération d’un nouveau access token
                 String jwtAccessToken = JWT.create()
                         .withSubject(appUser.getUsername())
                         .withExpiresAt(new Date(System.currentTimeMillis() + JWTUtil.EXPIRE_ACCESS_TOKEN))
@@ -82,7 +111,6 @@ public class UserController {
 
                 Map<String, String> idToken = new HashMap<>();
                 idToken.put("access-token", jwtAccessToken);
-                idToken.put("refresh-token", jwtRefreshToken);
                 response.setContentType("application/json");
                 new ObjectMapper().writeValue(response.getOutputStream(), idToken); // envoie idToken dans le body en format JSON
 

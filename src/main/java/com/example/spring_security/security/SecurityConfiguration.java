@@ -4,6 +4,7 @@ import com.example.spring_security.entities.AppUser;
 import com.example.spring_security.filters.JwtAuthenticationFilter;
 import com.example.spring_security.filters.JwtAuthorizationFilter;
 import com.example.spring_security.service.AccountService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -33,6 +34,7 @@ import static org.springframework.security.config.Customizer.withDefaults;
 
 @Configuration
 @EnableWebSecurity
+@Slf4j
 public class SecurityConfiguration implements UserDetailsService {
 
     @Autowired
@@ -41,6 +43,7 @@ public class SecurityConfiguration implements UserDetailsService {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, AuthenticationConfiguration authenticationConfiguration) throws Exception {
+        log.info("filterChain");
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests((authz) -> authz.requestMatchers("/h2-console/**", "/refreshToken/**").permitAll()) // laisse h2 tranquille
