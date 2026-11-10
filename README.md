@@ -234,3 +234,24 @@ public void refreshToken(HttpServletRequest request, HttpServletResponse respons
 ```
 
 Ceci permet de générer un nouveau access token à chaque fois qu'il a expiré.
+
+## Notes
+
+### 1. La différence subtile entre `@PreAuthorize` et `@PostAuthorize`
+
+Tu mentionnes `@PostAuthorize("hasAuthority('ADMIN')")` dans ton contrôleur.
+
+* **`@PreAuthorize` (Le plus courant) :** Spring évalue l'expression *avant* d'exécuter la méthode. Si l'utilisateur n'a pas les droits, la méthode ne se lance même pas (gain de performance et sécurité immédiate).
+* **`@PostAuthorize` (Le piège) :** Spring exécute **d'abord** la méthode, récupère le résultat, et évalue l'expression *après coup*. C'est utile uniquement si tu dois vérifier des droits basés sur l'objet retourné (par exemple : *"Est-ce que l'utilisateur connecté est le propriétaire de cette ressource précise ?"*). Si la méthode fait des appels lourds en base de données pour rien avant de rejeter l'accès, c'est une erreur de conception.
+
+### 2. La gestion propre des erreurs de token (Le piège du bloc `catch` dans les filtres)
+
+Regarde ton `JwtAuthorizationFilter` ou ton endpoint `/refreshToken` : en cas d'exception (token expiré, signature invalide), tu fais un `throw e` ou tu écris directement dans la réponse HTTP.
+
+* **Le problème :** Comme un filtre s'exécute **avant** d'entrer dans le contrôleur Spring MVC, une exception levée ici ne traverse pas le `@RestControllerAdvice` (le gestionnaire global d'erreurs). Résultat : le client reçoit parfois une réponse HTML brute de Tomcat au lieu d'un joli JSON `401 Unauthorized` proprement formaté. C'est un point classique testé en entretien.
+
+### 3. La révocation des Refresh Tokens (Le talon d'achille du Stateless pur)
+
+Dans le code actuel, ton token JWT contient une date d'expiration, mais si un utilisateur vole ton *refresh token*, il peut générer des *access tokens* indéfiniment jusqu'à sa date de péremption, sans que le serveur ne puisse l'en empêcher (puisque le serveur est *stateless* et ne stocke rien en session).
+
+* **La solution d'entreprise :** Découvrir comment on gère une **blacklist de tokens** ou comment on stocke le *refresh token* en base de données (avec un drapeau `isRevoked`) pour permettre une vraie déconnexion ou une révocation en cas de vol.
